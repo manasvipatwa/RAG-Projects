@@ -8,16 +8,16 @@ import requests
 from opik import track, opik_context
 import streamlit as st
 import requests
-import fitz  # PyMuPDF for PDFs
-import pandas as pd  # For Excel and CSV files
+import fitz  
+import pandas as pd  
 from io import StringIO
-import docx  # For DOCX files
-from pptx import Presentation  # For PPT files
+import docx 
+from pptx import Presentation  
 import json
 
 # Initialize environment variable and model
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-ollama_url = "http://localhost:11434/api/generate"  # Default Ollama API URL
+ollama_url = "http://localhost:11434/api/generate"  
 tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 
@@ -41,9 +41,9 @@ def generate_embeddings(documents, file_names):
 # Function to find the most relevant document based on Faiss similarity search
 def find_relevant_document(question, faiss_index, documents, file_names):
     question_embedding = get_embeddings([question])
-    D, I = faiss_index.search(question_embedding, k=1)  # Get the most similar document
+    D, I = faiss_index.search(question_embedding, k=1) 
     file_name = file_names[I[0][0]]
-    return documents[I[0][0]], D[0][0], file_name  # Return the relevant document and its distance
+    return documents[I[0][0]], D[0][0], file_name  
 
 # Track the Ollama API call 
 @track(project_name="Document QA", tags=['ollama', 'python-library', 'querying'])
@@ -163,7 +163,7 @@ if uploaded_files:
         # Process CSV files
         elif uploaded_file.type == "text/csv":
             df = pd.read_csv(uploaded_file)
-            csv_text = df.to_string(index=False)  # Convert CSV content to text
+            csv_text = df.to_string(index=False)
             all_documents.append(csv_text)
             file_names.append(uploaded_file.name)
             st.write(f'Processed CSV file: {uploaded_file.name}')
