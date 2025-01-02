@@ -193,7 +193,7 @@ if option == "Scrape Website":
 
     if url_input:
         documents = []
-        file_names = [url_input]  # Use the URL as the file name for this document
+        file_names = [url_input] 
         # Load API key from config.json
         with open('config.json') as fd:
             conf = json.loads(fd.read())
