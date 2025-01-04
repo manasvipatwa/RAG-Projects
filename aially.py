@@ -17,6 +17,7 @@ import json
 from firecrawl import FirecrawlApp
 from IPython.display import Markdown, display
 import time
+import base64
 
 # Initialize environment variable and model
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -129,6 +130,47 @@ if st.session_state["section"] == "document_upload":
     uploaded_files = st.file_uploader("Choose files", type=["pdf", "txt", "docx", "xlsx", "pptx", "csv"], accept_multiple_files=True)
 
 
+    # Function to display PDFs in a new window or inline
+    def display_pdf(file):
+    
+        # Read file as bytes:
+        bytes_data = file.getvalue()
+    
+        # Convert to utf-8
+        base64_pdf = base64.b64encode(bytes_data).decode('utf-8')
+    
+        # Embed PDF in HTML
+        pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="700" type="application/pdf"></iframe>'
+    
+        # Display file
+        st.markdown(pdf_display, unsafe_allow_html=True)
+    
+    
+    # Function to preview DOCX content
+    def display_docx(file):
+        doc = docx.Document(file)
+        doc_text = ""
+        for para in doc.paragraphs:
+            doc_text += para.text + "\n"
+        st.text_area("DOCX Content", doc_text, height=300)
+    
+    
+    # Function to preview Excel content
+    def display_excel(file):
+        df = pd.read_excel(file)
+        st.write(df)
+    
+    
+    # Function to preview PPTX content
+    def display_pptx(file):
+        prs = Presentation(file)
+        pptx_text = ""
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    pptx_text += shape.text + "\n"
+        st.text_area("PPTX Content", pptx_text, height=300)
+
     # Helper function to read text from DOCX files
     def extract_text_from_docx(docx_file):
         doc = docx.Document(docx_file)
@@ -169,50 +211,100 @@ if st.session_state["section"] == "document_upload":
                     doc_text += page.get_text()
                 all_documents.append(doc_text)
                 file_names.append(uploaded_file.name)
-                # st.write(f'Processed PDF file: {uploaded_file.name}')
-                # Provide a button to preview PDF file
+                preview_key = f"preview_{uploaded_file.name}"
+
                 if st.button(f"Preview {uploaded_file.name}"):
-                    st.text_area("Preview PDF file", doc_text[:500])
-                    # display_pdf(uploaded_file)
+                    # st.text_area("Preview PDF file", doc_text[:500])
+                    if preview_key not in st.session_state:
+                        st.session_state[preview_key] = False  # Default to not showing the preview
+    
+                    # Toggle the preview state
+                    st.session_state[preview_key] = not st.session_state[preview_key]
+    
+                # If the preview is active, display the PDF
+                if preview_key in st.session_state and st.session_state[preview_key]:
+                    display_pdf(uploaded_file)
+                     
 
             # Process DOCX files
             elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
                 doc_text = extract_text_from_docx(uploaded_file)
                 all_documents.append(doc_text)
                 file_names.append(uploaded_file.name)
-                # st.write(f'Processed DOCX file: {uploaded_file.name}')
-                # Provide a button to preview DOCX file
+                preview_key = f"preview_{uploaded_file.name}"
+
                 if st.button(f"Preview {uploaded_file.name}"):
-                    st.text_area("Preview DOCX file", doc_text[:500])
+                    # st.text_area("Preview PDF file", doc_text[:500])
+                    if preview_key not in st.session_state:
+                        st.session_state[preview_key] = False  # Default to not showing the preview
+    
+                    # Toggle the preview state
+                    st.session_state[preview_key] = not st.session_state[preview_key]
+    
+                # If the preview is active, display the PDF
+                if preview_key in st.session_state and st.session_state[preview_key]:
+                    display_docx(uploaded_file)
+                    # st.text_area("Preview DOCX file", doc_text[:500])
 
             # Process TXT files
             elif uploaded_file.type == "text/plain":
                 doc_text = StringIO(uploaded_file.getvalue().decode("utf-8")).read()
                 all_documents.append(doc_text)
                 file_names.append(uploaded_file.name)
-                # st.write(f'Processed TXT file: {uploaded_file.name}')
-                # Provide a button to preview TXT file
+                preview_key = f"preview_{uploaded_file.name}"
+
                 if st.button(f"Preview {uploaded_file.name}"):
-                    st.text_area("Preview TXT file", doc_text[:500])
+                    # st.text_area("Preview PDF file", doc_text[:500])
+                    if preview_key not in st.session_state:
+                        st.session_state[preview_key] = False  # Default to not showing the preview
+    
+                    # Toggle the preview state
+                    st.session_state[preview_key] = not st.session_state[preview_key]
+    
+                # If the preview is active, display the PDF
+                if preview_key in st.session_state and st.session_state[preview_key]:
+                    st.text_area("Text File Content", doc_text, height=300)
+                    # st.text_area("Preview TXT file", doc_text[:500])
             
             # Process Excel files
             elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
                 doc_text = extract_text_from_excel(uploaded_file)
                 all_documents.append(doc_text)
-                # st.write(f'Processed Excel file: {uploaded_file.name}')
-                # Provide a button to preview Excel file
+                file_names.append(uploaded_file.name)
+                preview_key = f"preview_{uploaded_file.name}"
+
                 if st.button(f"Preview {uploaded_file.name}"):
-                    st.text_area("Preview Excel file", doc_text[:500])
+                    # st.text_area("Preview PDF file", doc_text[:500])
+                    if preview_key not in st.session_state:
+                        st.session_state[preview_key] = False  # Default to not showing the preview
+    
+                    # Toggle the preview state
+                    st.session_state[preview_key] = not st.session_state[preview_key]
+    
+                # If the preview is active, display the PDF
+                if preview_key in st.session_state and st.session_state[preview_key]:
+                    display_excel(uploaded_file)
+                    # st.text_area("Preview Excel file", doc_text[:500])
             
             # Process PPTX files
             elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
                 doc_text = extract_text_from_pptx(uploaded_file)
                 all_documents.append(doc_text)
                 file_names.append(uploaded_file.name)
-                # st.write(f'Processed PPTX file: {uploaded_file.name}')
-                # Provide a button to preview PPTX file
+                preview_key = f"preview_{uploaded_file.name}"
+
                 if st.button(f"Preview {uploaded_file.name}"):
-                    st.text_area("Preview PPTX file", doc_text[:500])
+                    # st.text_area("Preview PDF file", doc_text[:500])
+                    if preview_key not in st.session_state:
+                        st.session_state[preview_key] = False  # Default to not showing the preview
+    
+                    # Toggle the preview state
+                    st.session_state[preview_key] = not st.session_state[preview_key]
+    
+                # If the preview is active, display the PDF
+                if preview_key in st.session_state and st.session_state[preview_key]:
+                    display_pptx(uploaded_file)
+                    # st.text_area("Preview PPTX file", doc_text[:500])
             
             # Process CSV files
             elif uploaded_file.type == "text/csv":
@@ -220,10 +312,20 @@ if st.session_state["section"] == "document_upload":
                 csv_text = df.to_string(index=False)
                 all_documents.append(csv_text)
                 file_names.append(uploaded_file.name)
-                # st.write(f'Processed CSV file: {uploaded_file.name}')
-                # Provide a button to preview CSV file
+                preview_key = f"preview_{uploaded_file.name}"
+
                 if st.button(f"Preview {uploaded_file.name}"):
-                    st.text_area("Preview CSV file", csv_text[:500])
+                    # st.text_area("Preview PDF file", doc_text[:500])
+                    if preview_key not in st.session_state:
+                        st.session_state[preview_key] = False  # Default to not showing the preview
+    
+                    # Toggle the preview state
+                    st.session_state[preview_key] = not st.session_state[preview_key]
+    
+                # If the preview is active, display the PDF
+                if preview_key in st.session_state and st.session_state[preview_key]:
+                    st.write(df)
+                    # st.text_area("Preview CSV file", csv_text[:500])
 
         # After processing all files, generate embeddings for the combined documents
         embeddings, index, file_names = generate_embeddings(all_documents, file_names)
